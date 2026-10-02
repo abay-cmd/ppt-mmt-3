@@ -236,258 +236,180 @@
   }
 
   function initThree() {
-    var container = document.getElementById('three-container');
-    if (!container) return;
+    try {
+      var container = document.getElementById('three-container');
+      if (!container || typeof THREE === 'undefined') return;
 
-    var width = container.clientWidth || window.innerWidth;
-    var height = container.clientHeight || window.innerHeight;
+      var width = container.clientWidth || window.innerWidth;
+      var height = container.clientHeight || window.innerHeight;
 
-    scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x000000, 0.05);
+      scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x000000, 0.05);
 
-    camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    camera.position.set(0, 4.2, 11.5);
-    camera.lookAt(0, 1.2, 0);
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
+      camera.position.set(0, 4.2, 11.5);
+      camera.lookAt(0, 1.2, 0);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    container.innerHTML = '';
-    container.appendChild(renderer.domElement);
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
 
-    var ambLight = new THREE.AmbientLight(0xffffff, 0.85);
-    scene.add(ambLight);
+      var ambLight = new THREE.AmbientLight(0xffffff, 0.85);
+      scene.add(ambLight);
 
-    var dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
-    dirLight1.position.set(8, 14, 8);
-    scene.add(dirLight1);
+      var dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
+      dirLight1.position.set(8, 14, 8);
+      scene.add(dirLight1);
 
-    var dirLight2 = new THREE.DirectionalLight(0xa1a1aa, 0.6);
-    dirLight2.position.set(-8, -4, -6);
-    scene.add(dirLight2);
+      var dirLight2 = new THREE.DirectionalLight(0xa1a1aa, 0.6);
+      dirLight2.position.set(-8, -4, -6);
+      scene.add(dirLight2);
 
-    buildingGroup = new THREE.Group();
-    scene.add(buildingGroup);
+      buildingGroup = new THREE.Group();
+      scene.add(buildingGroup);
 
-    var winTex = makeWindowTexture();
-    winTex.wrapS = THREE.RepeatWrapping;
-    winTex.wrapT = THREE.RepeatWrapping;
+      var winTex = makeWindowTexture();
+      winTex.wrapS = THREE.RepeatWrapping;
+      winTex.wrapT = THREE.RepeatWrapping;
 
-    var buildingMat = new THREE.MeshStandardMaterial({
-      color: 0xe4e4e7,
-      roughness: 0.35,
-      metalness: 0.15,
-      map: winTex
-    });
+      var buildingMat = new THREE.MeshStandardMaterial({
+        color: 0xe4e4e7,
+        roughness: 0.35,
+        metalness: 0.15,
+        map: winTex
+      });
 
-    var edgeMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.28 });
+      var edgeMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.28 });
 
-    function addBlock(w, h, d, y) {
-      var geo = new THREE.BoxGeometry(w, h, d);
-      var mesh = new THREE.Mesh(geo, buildingMat);
-      mesh.position.y = y;
-      buildingGroup.add(mesh);
-      var edges = new THREE.EdgesGeometry(geo);
-      var line = new THREE.LineSegments(edges, edgeMat);
-      mesh.add(line);
-      return mesh;
-    }
-
-    addBlock(5.2, 0.6, 5.2, 0.3);
-    addBlock(4.2, 2.4, 4.2, 1.8);
-    addBlock(3.0, 1.8, 3.0, 3.9);
-    addBlock(1.4, 2.2, 1.4, 5.9);
-
-    var groundGeo = new THREE.RingGeometry(0.1, 7.5, 64);
-    var groundMat = new THREE.MeshBasicMaterial({ color: 0x27272a, side: THREE.DoubleSide });
-    var ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = Math.PI / 2;
-    ground.position.y = 0.01;
-    scene.add(ground);
-
-    var grid = new THREE.GridHelper(18, 36, 0x3f3f46, 0x1f1f23);
-    grid.position.y = 0;
-    scene.add(grid);
-
-    airplanePivot = new THREE.Group();
-    scene.add(airplanePivot);
-
-    airplaneGroup = new THREE.Group();
-    var craftMat = new THREE.MeshStandardMaterial({ color: 0xf4f4f5, roughness: 0.3, metalness: 0.2 });
-
-    var bodyGeo = new THREE.CylinderGeometry(0.14, 0.18, 1.3, 16);
-    var body = new THREE.Mesh(bodyGeo, craftMat);
-    body.rotation.z = Math.PI / 2;
-    airplaneGroup.add(body);
-
-    var noseGeo = new THREE.ConeGeometry(0.18, 0.45, 16);
-    var nose = new THREE.Mesh(noseGeo, craftMat);
-    nose.rotation.z = -Math.PI / 2;
-    nose.position.x = 0.85;
-    airplaneGroup.add(nose);
-
-    var wingGeo = new THREE.BoxGeometry(0.32, 0.04, 1.8);
-    var wings = new THREE.Mesh(wingGeo, craftMat);
-    wings.position.set(0.1, 0, 0);
-    airplaneGroup.add(wings);
-
-    var tailFinGeo = new THREE.BoxGeometry(0.24, 0.4, 0.04);
-    var tailFin = new THREE.Mesh(tailFinGeo, craftMat);
-    tailFin.position.set(-0.55, 0.22, 0);
-    airplaneGroup.add(tailFin);
-
-    var tailWingGeo = new THREE.BoxGeometry(0.18, 0.03, 0.65);
-    var tailWing = new THREE.Mesh(tailWingGeo, craftMat);
-    tailWing.position.set(-0.55, 0.06, 0);
-    airplaneGroup.add(tailWing);
-
-    airplaneGroup.position.set(5.5, 3.2, 0);
-    airplaneGroup.rotation.z = THREE.MathUtils.degToRad(-12);
-    airplanePivot.add(airplaneGroup);
-
-    var trailCount = 60;
-    for (var t = 0; t < trailCount; t++) {
-      trailPositions.push(new THREE.Vector3(5.5, 3.2, 0));
-    }
-    var trailGeo = new THREE.BufferGeometry().setFromPoints(trailPositions);
-    var trailMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
-    trailMesh = new THREE.Line(trailGeo, trailMat);
-    scene.add(trailMesh);
-
-    function onPointerDown(e) {
-      if (window.appState && window.appState.currentIndex !== 0) return;
-      isDragging = true;
-      resumeAudio();
-      startRotateSound();
-      prevMouseX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    }
-
-    function onPointerMove(e) {
-      var clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-      var clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
-      mouseTargetX = (clientX / window.innerWidth - 0.5) * 1.2;
-      mouseTargetY = (clientY / window.innerHeight - 0.5) * 0.8;
-
-      if (!isDragging) return;
-      var deltaX = clientX - prevMouseX;
-      prevMouseX = clientX;
-      var deltaAngle = deltaX * 0.007;
-      buildingAngle += deltaAngle;
-      buildingVelocity = deltaAngle;
-      airplaneOrbitAngle -= deltaAngle * 0.85;
-
-      updateRotateSound(deltaAngle);
-
-      ratchetAcc += Math.abs(deltaAngle);
-      if (ratchetAcc > THREE.MathUtils.degToRad(12)) {
-        playRatchetTick();
-        ratchetAcc = 0;
+      function addBlock(w, h, d, y) {
+        var geo = new THREE.BoxGeometry(w, h, d);
+        var mesh = new THREE.Mesh(geo, buildingMat);
+        mesh.position.y = y;
+        buildingGroup.add(mesh);
+        var edges = new THREE.EdgesGeometry(geo);
+        var line = new THREE.LineSegments(edges, edgeMat);
+        mesh.add(line);
+        return mesh;
       }
-    }
 
-    function onPointerUp() {
-      if (!isDragging) return;
-      isDragging = false;
-      stopRotateSound();
-    }
+      addBlock(5.2, 0.6, 5.2, 0.3);
+      addBlock(4.2, 2.4, 4.2, 1.8);
+      addBlock(3.0, 1.8, 3.0, 3.9);
+      addBlock(1.4, 2.2, 1.4, 5.9);
 
-    var dom = renderer.domElement;
-    dom.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('mouseup', onPointerUp);
+      var groundGeo = new THREE.RingGeometry(0.1, 7.5, 64);
+      var groundMat = new THREE.MeshBasicMaterial({ color: 0x27272a, side: THREE.DoubleSide });
+      var ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = Math.PI / 2;
+      ground.position.y = 0.01;
+      scene.add(ground);
 
-    dom.addEventListener('touchstart', onPointerDown, { passive: true });
-    window.addEventListener('touchmove', onPointerMove, { passive: true });
-    window.addEventListener('touchend', onPointerUp);
+      var grid = new THREE.GridHelper(18, 36, 0x3f3f46, 0x1f1f23);
+      grid.position.y = 0;
+      scene.add(grid);
 
-    window.addEventListener('resize', onResizeThree);
-  }
+      airplanePivot = new THREE.Group();
+      scene.add(airplanePivot);
 
-  function onResizeThree() {
-    if (!renderer || !camera) return;
-    var container = document.getElementById('three-container');
-    var w = container ? container.clientWidth : window.innerWidth;
-    var h = container ? container.clientHeight : window.innerHeight;
-    camera.aspect = w / h;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
-  }
+      airplaneGroup = new THREE.Group();
+      var craftMat = new THREE.MeshStandardMaterial({ color: 0xf4f4f5, roughness: 0.3, metalness: 0.2 });
 
-  function loopThree() {
-    if (!renderer || !scene || !camera) return;
+      var bodyGeo = new THREE.CylinderGeometry(0.14, 0.18, 1.3, 16);
+      var body = new THREE.Mesh(bodyGeo, craftMat);
+      body.rotation.z = Math.PI / 2;
+      airplaneGroup.add(body);
 
-    if (!isDragging) {
-      buildingAngle += 0.0018;
-      buildingVelocity *= 0.95;
-      buildingAngle += buildingVelocity;
-      if (Math.abs(buildingVelocity) > 0.0005) {
-        updateRotateSound(buildingVelocity);
-        ratchetAcc += Math.abs(buildingVelocity);
+      var noseGeo = new THREE.ConeGeometry(0.18, 0.45, 16);
+      var nose = new THREE.Mesh(noseGeo, craftMat);
+      nose.rotation.z = -Math.PI / 2;
+      nose.position.x = 0.85;
+      airplaneGroup.add(nose);
+
+      var wingGeo = new THREE.BoxGeometry(0.32, 0.04, 1.8);
+      var wings = new THREE.Mesh(wingGeo, craftMat);
+      wings.position.set(0.1, 0, 0);
+      airplaneGroup.add(wings);
+
+      var tailFinGeo = new THREE.BoxGeometry(0.24, 0.4, 0.04);
+      var tailFin = new THREE.Mesh(tailFinGeo, craftMat);
+      tailFin.position.set(-0.55, 0.22, 0);
+      airplaneGroup.add(tailFin);
+
+      var tailWingGeo = new THREE.BoxGeometry(0.18, 0.03, 0.65);
+      var tailWing = new THREE.Mesh(tailWingGeo, craftMat);
+      tailWing.position.set(-0.55, 0.06, 0);
+      airplaneGroup.add(tailWing);
+
+      airplaneGroup.position.set(5.5, 3.2, 0);
+      airplaneGroup.rotation.z = THREE.MathUtils.degToRad(-12);
+      airplanePivot.add(airplaneGroup);
+
+      var trailCount = 40;
+      for (var t = 0; t < trailCount; t++) {
+        trailPositions.push(new THREE.Vector3(5.5, 3.2, 0));
+      }
+      var trailGeo = new THREE.BufferGeometry().setFromPoints(trailPositions);
+      var trailMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 });
+      trailMesh = new THREE.Line(trailGeo, trailMat);
+      scene.add(trailMesh);
+
+      function onPointerDown(e) {
+        if (window.appState && window.appState.currentIndex !== 0) return;
+        isDragging = true;
+        resumeAudio();
+        startRotateSound();
+        prevMouseX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+      }
+
+      function onPointerMove(e) {
+        var clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+        var clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+        mouseTargetX = (clientX / window.innerWidth - 0.5) * 1.2;
+        mouseTargetY = (clientY / window.innerHeight - 0.5) * 0.8;
+
+        if (!isDragging) return;
+        var deltaX = clientX - prevMouseX;
+        prevMouseX = clientX;
+        var deltaAngle = deltaX * 0.007;
+        buildingAngle += deltaAngle;
+        buildingVelocity = deltaAngle;
+        airplaneOrbitAngle -= deltaAngle * 0.85;
+
+        updateRotateSound(deltaAngle);
+
+        ratchetAcc += Math.abs(deltaAngle);
         if (ratchetAcc > THREE.MathUtils.degToRad(12)) {
           playRatchetTick();
           ratchetAcc = 0;
         }
-      } else if (isRotateSoundActive) {
+      }
+
+      function onPointerUp() {
+        if (!isDragging) return;
+        isDragging = false;
         stopRotateSound();
       }
+
+      var dom = renderer.domElement;
+      dom.addEventListener('mousedown', onPointerDown);
+      window.addEventListener('mousemove', onPointerMove);
+      window.addEventListener('mouseup', onPointerUp);
+
+      dom.addEventListener('touchstart', onPointerDown, { passive: true });
+      window.addEventListener('touchmove', onPointerMove, { passive: true });
+      window.addEventListener('touchend', onPointerUp);
+
+      window.addEventListener('resize', onResizeThree);
+    } catch (err) {
+      console.warn('Three.js initialization safely bypassed:', err);
     }
-
-    buildingGroup.rotation.y = buildingAngle;
-
-    airplaneOrbitAngle += 0.007;
-    airplanePivot.rotation.y = airplaneOrbitAngle;
-
-    var time = Date.now() * 0.002;
-    airplaneGroup.position.y = 3.2 + Math.sin(time) * 0.22;
-    airplaneGroup.rotation.x = Math.cos(time) * 0.08;
-
-    camera.position.x += (mouseTargetX * 2.2 - camera.position.x) * 0.05;
-    camera.position.y += (4.2 - mouseTargetY * 1.5 - camera.position.y) * 0.05;
-    camera.lookAt(0, 1.4, 0);
-
-    if (trailMesh && airplaneGroup) {
-      var craftWorldPos = new THREE.Vector3();
-      airplaneGroup.getWorldPosition(craftWorldPos);
-      trailPositions.unshift(craftWorldPos);
-      trailPositions.pop();
-      trailMesh.geometry.setFromPoints(trailPositions);
-    }
-
-    renderer.render(scene, camera);
-    threeAnimId = requestAnimationFrame(loopThree);
-  }
-
-  function startThreeLoop() {
-    if (!threeAnimId) {
-      onResizeThree();
-      threeAnimId = requestAnimationFrame(loopThree);
-    }
-  }
-
-  function stopThreeLoop() {
-    if (threeAnimId) {
-      cancelAnimationFrame(threeAnimId);
-      threeAnimId = null;
-    }
-    stopRotateSound();
-  }
-
-  function parseGlossaryText(text) {
-    if (!text) return '';
-    return text.replace(/\[\[(.*?)\|(.*?)\]\]/g, function (_, label, key) {
-      return '<button type="button" class="btn-glossary" data-term="' + key + '">' + label + '</button>';
-    });
-  }
-
-  function wrapWords(text) {
-    if (!text) return '';
-    return text.split(' ').map(function (w) {
-      return '<span class="title-word">' + w + '</span> ';
-    }).join('');
   }
 
   function renderSlideDOM(slide) {
+    if (!slide) return '';
     var layout = slide.layout || 'cards';
     var out = '<div class="slide-wrap layout-' + layout + '"><div class="slide-content-stack">';
 
@@ -642,6 +564,34 @@
         });
       }
       out += '</div>';
+    } else if (layout === 'network') {
+      out += '<div class="network-grid anim-in">';
+      if (slide.points && slide.points.length) {
+        slide.points.forEach(function (pt) {
+          out += '<div class="network-node fx">' +
+                 (pt.icon ? '<div class="card-icon-wrap">' + pt.icon + '</div>' : '') +
+                 '<h3 class="card-title">' + pt.h + '</h3>' +
+                 '<p class="card-text">' + parseGlossaryText(pt.t) + '</p>' +
+                 '</div>';
+        });
+      }
+      out += '</div>';
+    } else if (layout === 'quote') {
+      out += '<div class="quote-zone anim-in">';
+      if (slide.visual && slide.visual.highlight) {
+        out += '<div class="quote-statement fx">' + slide.visual.highlight + '</div>';
+      }
+      if (slide.points && slide.points.length) {
+        out += '<div class="grid-cards" style="margin-top:24px;">';
+        slide.points.forEach(function (pt) {
+          out += '<div class="card-item fx">' +
+                 '<h3 class="card-title">' + pt.h + '</h3>' +
+                 '<p class="card-text">' + parseGlossaryText(pt.t) + '</p>' +
+                 '</div>';
+        });
+        out += '</div>';
+      }
+      out += '</div>';
     } else if (layout === 'closing') {
       out += '<div class="hero-box anim-in">' +
              '<div class="logo-badge-large fx"><img src="logo_uin.png" alt="Logo UIN" class="logo-img" onerror="this.parentElement.style.display=\'none\'"></div>' +
@@ -656,155 +606,20 @@
     return out;
   }
 
-  var appState = {
-    currentIndex: 0,
-    isTransitioning: false,
-    isPresenterOpen: false,
-    slides: []
-  };
-  window.appState = appState;
-
-  function runEntranceMotion(stageEl) {
-    var words = stageEl.querySelectorAll('.title-word');
-    if (words.length) {
-      gsap.fromTo(words,
-        { y: 32, opacity: 0, filter: 'blur(8px)' },
-        { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.65, stagger: 0.04, ease: 'power3.out', immediateRender: true }
-      );
-    }
-
-    var animCards = stageEl.querySelectorAll('.stat-card, .card-item, .step-card, .versus-column, .layer-bar, .hub-node, .table-row');
-    if (animCards.length) {
-      gsap.fromTo(animCards,
-        { scale: 0.94, opacity: 0, y: 20 },
-        { scale: 1, opacity: 1, y: 0, duration: 0.6, stagger: 0.06, ease: 'expo.out', immediateRender: true }
-      );
-    }
-
-    var pointRows = stageEl.querySelectorAll('.point-row');
-    if (pointRows.length) {
-      gsap.fromTo(pointRows,
-        { x: -16, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.5, stagger: 0.05, ease: 'power2.out', immediateRender: true }
-      );
-    }
-
-    var countTargets = stageEl.querySelectorAll('.count-target');
-    countTargets.forEach(function (el) {
-      var target = parseFloat(el.getAttribute('data-target')) || 0;
-      var obj = { val: 0 };
-      gsap.to(obj, {
-        val: target,
-        duration: 1.2,
-        ease: 'power3.out',
-        onUpdate: function () {
-          el.textContent = Math.round(obj.val);
-        }
-      });
-    });
-
-    var lines = stageEl.querySelectorAll('.layer-spine, .shutter-bar');
-    if (lines.length) {
-      gsap.fromTo(lines, { scaleY: 0 }, { scaleY: 1, duration: 0.7, ease: 'power2.out', immediateRender: true });
-    }
-
-    setTimeout(function () {
-      var allFx = stageEl.querySelectorAll('.fx, .anim-in, .title-word');
-      allFx.forEach(function (el) {
-        el.style.opacity = '1';
-        el.style.pointerEvents = 'auto';
-      });
-    }, 1800);
-  }
-
-  function applySlideTheme(slideIndex) {
-    var darkIndices = [0, 1, 3, 16, 17, 21, 22];
-    var isDark = darkIndices.indexOf(slideIndex) !== -1;
-    if (isDark) {
-      document.body.classList.remove('theme-light');
-      document.body.classList.add('theme-dark');
-    } else {
-      document.body.classList.remove('theme-dark');
-      document.body.classList.add('theme-light');
-    }
-  }
-
-  function updateChapterRail(slideIndex) {
-    var rail = document.getElementById('chapter-rail');
-    if (!rail) return;
-    if (slideIndex <= 5) {
-      rail.style.display = 'none';
-      return;
-    }
-    rail.style.display = 'flex';
-
-    var currentChapter = 'A';
-    if (slideIndex >= 6 && slideIndex <= 7) currentChapter = 'A';
-    else if (slideIndex === 8) currentChapter = 'B';
-    else if (slideIndex >= 9 && slideIndex <= 15) currentChapter = 'C';
-    else if (slideIndex >= 16 && slideIndex <= 17) currentChapter = 'D';
-    else if (slideIndex >= 18 && slideIndex <= 20) currentChapter = 'E';
-    else if (slideIndex >= 21) currentChapter = 'F';
-
-    var dots = rail.querySelectorAll('.rail-dot');
-    dots.forEach(function (dot) {
-      if (dot.getAttribute('data-chapter') === currentChapter) {
-        dot.classList.add('active');
-      } else {
-        dot.classList.remove('active');
-      }
-    });
-  }
-
-  function updateFooter(slideIndex) {
-    var total = appState.slides.length || 23;
-    var currentNum = slideIndex + 1;
-    var counterEl = document.getElementById('slide-counter');
-    if (counterEl) {
-      counterEl.textContent = (currentNum < 10 ? '0' + currentNum : currentNum) + ' / ' + (total < 10 ? '0' + total : total);
-    }
-
-    var progressBar = document.getElementById('progress-bar');
-    if (progressBar) {
-      var pct = (slideIndex / (total - 1)) * 100;
-      progressBar.style.width = pct + '%';
-    }
-
-    var nextTitleEl = document.getElementById('next-title-text');
-    if (nextTitleEl) {
-      if (slideIndex + 1 < total) {
-        var nextSlide = appState.slides[slideIndex + 1];
-        nextTitleEl.textContent = nextSlide ? nextSlide.title : 'Slide Berikutnya';
-      } else {
-        nextTitleEl.textContent = 'Akhir Presentasi';
-      }
-    }
-  }
-
-  function updatePresenterPanel(slideIndex) {
-    var contentEl = document.getElementById('presenter-content');
-    if (!contentEl) return;
-    var slide = appState.slides[slideIndex];
-    if (slide && slide.script) {
-      var paras = slide.script.split('\n\n').filter(Boolean);
-      contentEl.innerHTML = paras.map(function (p) {
-        return '<p>' + p.trim() + '</p>';
-      }).join('');
-    } else {
-      contentEl.innerHTML = '<p>Tidak ada catatan untuk slide ini.</p>';
-    }
-  }
-
-  function goToSlide(targetIndex, forward) {
+  function goToSlide(targetIndex, forward, isInitial) {
+    if (!appState.slides || appState.slides.length === 0) return;
     if (targetIndex < 0 || targetIndex >= appState.slides.length) return;
+
     if (appState.isTransitioning) {
-      gsap.killTweensOf('*');
+      if (typeof gsap !== 'undefined') gsap.killTweensOf('*');
       appState.isTransitioning = false;
     }
 
-    appState.isTransitioning = true;
-    resumeAudio();
-    playNav(forward !== undefined ? forward : targetIndex > appState.currentIndex);
+    if (!isInitial) {
+      appState.isTransitioning = true;
+      resumeAudio();
+      playNav(forward !== undefined ? forward : targetIndex > appState.currentIndex);
+    }
 
     var stage = document.getElementById('slide-stage');
     var transitionTypeIndex = targetIndex % 3;
@@ -842,6 +657,13 @@
           });
         }
       }
+    }
+
+    /* Skip heavy transition masks on first startup to avoid blank screen */
+    if (isInitial || typeof gsap === 'undefined') {
+      swapContent();
+      appState.isTransitioning = false;
+      return;
     }
 
     if (transitionTypeIndex === 0) {
@@ -908,242 +730,24 @@
     }
   }
 
-  function bindCardSpotlight(container) {
-    var cards = container.querySelectorAll('.stat-card, .card-item, .step-card, .versus-column');
-    cards.forEach(function (c) {
-      c.addEventListener('mousemove', function (e) {
-        var rect = c.getBoundingClientRect();
-        var x = e.clientX - rect.left;
-        var y = e.clientY - rect.top;
-        c.style.setProperty('--mx', x + 'px');
-        c.style.setProperty('--my', y + 'px');
-
-        var cx = rect.width / 2;
-        var cy = rect.height / 2;
-        var rotX = ((y - cy) / cy) * -6;
-        var rotY = ((x - cx) / cx) * 6;
-        c.style.transform = 'perspective(1000px) rotateX(' + rotX.toFixed(2) + 'deg) rotateY(' + rotY.toFixed(2) + 'deg)';
-      });
-      c.addEventListener('mouseleave', function () {
-        c.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-      });
-    });
-  }
-
-  function showGlossaryModal(key) {
-    if (!window.DECK || !window.DECK.glossary) return;
-    var info = window.DECK.glossary[key];
-    if (!info) return;
-
-    var backdrop = document.getElementById('glossary-backdrop');
-    var titleEl = document.getElementById('glossary-title');
-    var defEl = document.getElementById('glossary-def');
-    var exampleEl = document.getElementById('glossary-example');
-
-    titleEl.textContent = info.t || key;
-    defEl.textContent = info.d || '';
-    exampleEl.textContent = info.c || '';
-
-    backdrop.classList.add('open');
-    backdrop.setAttribute('aria-hidden', 'false');
-    playGlossarySound(true);
-  }
-
-  function closeGlossaryModal() {
-    var backdrop = document.getElementById('glossary-backdrop');
-    if (!backdrop || !backdrop.classList.contains('open')) return;
-    backdrop.classList.remove('open');
-    backdrop.setAttribute('aria-hidden', 'true');
-    playGlossarySound(false);
-  }
-
-  function togglePresenterPanel() {
-    var panel = document.getElementById('presenter-panel');
-    if (!panel) return;
-    appState.isPresenterOpen = !appState.isPresenterOpen;
-    if (appState.isPresenterOpen) {
-      panel.classList.add('open');
-      panel.setAttribute('aria-hidden', 'false');
-    } else {
-      panel.classList.remove('open');
-      panel.setAttribute('aria-hidden', 'true');
-    }
-  }
-
-  function initEvents() {
-    document.addEventListener('click', function (e) {
-      resumeAudio();
-      var target = e.target;
-
-      if (target.closest('.btn-glossary')) {
-        var btn = target.closest('.btn-glossary');
-        var termKey = btn.getAttribute('data-term');
-        showGlossaryModal(termKey);
-        return;
-      }
-
-      if (target.closest('#btn-next')) {
-        playClick();
-        goToSlide(appState.currentIndex + 1, true);
-        return;
-      }
-      if (target.closest('#btn-prev')) {
-        playClick();
-        goToSlide(appState.currentIndex - 1, false);
-        return;
-      }
-      if (target.closest('#next-slide-preview')) {
-        playClick();
-        goToSlide(appState.currentIndex + 1, true);
-        return;
-      }
-
-      if (target.closest('.rail-dot')) {
-        var dot = target.closest('.rail-dot');
-        var ch = dot.getAttribute('data-chapter');
-        var targetIndex = -1;
-        if (ch === 'A') targetIndex = 6;
-        else if (ch === 'B') targetIndex = 8;
-        else if (ch === 'C') targetIndex = 9;
-        else if (ch === 'D') targetIndex = 16;
-        else if (ch === 'E') targetIndex = 18;
-        else if (ch === 'F') targetIndex = 21;
-        if (targetIndex !== -1) {
-          playClick();
-          goToSlide(targetIndex);
-        }
-        return;
-      }
-
-      if (target.closest('#btn-close-glossary') || target.id === 'glossary-backdrop') {
-        closeGlossaryModal();
-        return;
-      }
-
-      if (target.closest('#btn-close-presenter')) {
-        togglePresenterPanel();
-        return;
-      }
-
-      if (target.closest('#mute-toggle')) {
-        isAudioMuted = !isAudioMuted;
-        var iconOn = document.querySelector('.icon-audio-on');
-        var iconOff = document.querySelector('.icon-audio-off');
-        if (iconOn && iconOff) {
-          iconOn.style.display = isAudioMuted ? 'none' : 'block';
-          iconOff.style.display = isAudioMuted ? 'block' : 'none';
-        }
-        return;
-      }
-
-      if (target.closest('#fullscreen-toggle')) {
-        playClick();
-        try {
-          if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(function () {});
-          } else {
-            document.exitFullscreen().catch(function () {});
-          }
-        } catch (err) {}
-        return;
-      }
-
-      if (target.closest('button') || target.closest('a')) {
-        playClick();
-      }
-    });
-
-    document.addEventListener('fullscreenchange', function () {
-      var iconEnter = document.querySelector('.icon-fs-enter');
-      var iconExit = document.querySelector('.icon-fs-exit');
-      if (iconEnter && iconExit) {
-        var isFs = !!document.fullscreenElement;
-        iconEnter.style.display = isFs ? 'none' : 'block';
-        iconExit.style.display = isFs ? 'block' : 'none';
-      }
-      onResizeThree();
-    });
-
-    window.addEventListener('keydown', function (e) {
-      resumeAudio();
-
-      if (e.key === 'Escape') {
-        closeGlossaryModal();
-        if (appState.isPresenterOpen) togglePresenterPanel();
-        return;
-      }
-
-      if (e.key === 'n' || e.key === 'N') {
-        togglePresenterPanel();
-        return;
-      }
-
-      if (e.key === 'm' || e.key === 'M') {
-        var muteBtn = document.getElementById('mute-toggle');
-        if (muteBtn) muteBtn.click();
-        return;
-      }
-
-      if (e.key === 'f' || e.key === 'F') {
-        var fsBtn = document.getElementById('fullscreen-toggle');
-        if (fsBtn) fsBtn.click();
-        return;
-      }
-
-      if (appState.isPresenterOpen && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-        var panelBody = document.getElementById('presenter-content');
-        if (panelBody) {
-          panelBody.scrollTop += e.key === 'ArrowDown' ? 60 : -60;
-          return;
-        }
-      }
-
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
-        e.preventDefault();
-        goToSlide(appState.currentIndex + 1, true);
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        e.preventDefault();
-        goToSlide(appState.currentIndex - 1, false);
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        goToSlide(0, false);
-      } else if (e.key === 'End') {
-        e.preventDefault();
-        goToSlide(appState.slides.length - 1, true);
-      }
-    });
-
-    var touchStartX = 0;
-    var touchStartY = 0;
-    window.addEventListener('touchstart', function (e) {
-      if (e.touches && e.touches.length === 1) {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-      }
-    }, { passive: true });
-
-    window.addEventListener('touchend', function (e) {
-      if (e.changedTouches && e.changedTouches.length === 1) {
-        var deltaX = e.changedTouches[0].clientX - touchStartX;
-        var deltaY = e.changedTouches[0].clientY - touchStartY;
-        if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 60) {
-          if (deltaX < 0) {
-            goToSlide(appState.currentIndex + 1, true);
-          } else {
-            goToSlide(appState.currentIndex - 1, false);
-          }
-        }
-      }
-    }, { passive: true });
-  }
-
   function initApp() {
-    if (window.DECK && window.DECK.slides) {
+    var stage = document.getElementById('slide-stage');
+
+    if (window.DECK && window.DECK.slides && window.DECK.slides.length > 0) {
       appState.slides = window.DECK.slides;
+    } else {
+      if (stage) {
+        stage.innerHTML = '<div style="text-align:center;padding:40px;color:#fff;">' +
+                          '<h2 style="font-size:1.8rem;margin-bottom:12px;">Memuat Data Presentasi...</h2>' +
+                          '<p style="color:#a1a1aa;">Pastikan slides.js berada di direktori yang sama dengan index.html.</p>' +
+                          '</div>';
+      }
+      return;
     }
+
     initThree();
     initEvents();
-    goToSlide(0);
+    goToSlide(0, false, true);
   }
 
   if (document.readyState === 'loading') {
