@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Model-Model MMT dalam Pendidikan</title>
+  <link rel="icon" type="image/png" href="logo_uin.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="theme-dark">
+  <div id="ambient-layer" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+  </div>
+
+  <div id="progress-bar-wrap">
+    <div id="progress-bar"></div>
+  </div>
+
+  <header id="global-header">
+    <div class="header-left">
+      <div class="logo-badge-header">
+        <img src="logo_uin.png" alt="Logo UIN Sunan Gunung Djati" class="logo-img" onerror="this.parentElement.style.display='none'">
+      </div>
+    </div>
+    <nav class="header-center" id="chapter-rail" aria-label="Rel Bab Navigasi">
+      <div class="rail-track">
+        <button type="button" class="rail-dot" data-chapter="A" aria-label="Bab A Nilai"><span class="rail-label">A Nilai</span></button>
+        <button type="button" class="rail-dot" data-chapter="B" aria-label="Bab B Konsep"><span class="rail-label">B Konsep</span></button>
+        <button type="button" class="rail-dot" data-chapter="C" aria-label="Bab C Model"><span class="rail-label">C Model</span></button>
+        <button type="button" class="rail-dot" data-chapter="D" aria-label="Bab D Padu"><span class="rail-label">D Padu</span></button>
+        <button type="button" class="rail-dot" data-chapter="E" aria-label="Bab E Tantangan dan Solusi"><span class="rail-label">E Tantangan dan Solusi</span></button>
+        <button type="button" class="rail-dot" data-chapter="F" aria-label="Bab F Simpulan"><span class="rail-label">F Simpulan</span></button>
+      </div>
+    </nav>
+    <div class="header-right">
+      <button type="button" id="mute-toggle" class="control-icon-btn" aria-label="Bisukan atau aktifkan suara">
+        <svg class="svg-icon icon-audio-on" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        <svg class="svg-icon icon-audio-off" viewBox="0 0 24 24" style="display:none;"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </button>
+      <button type="button" id="fullscreen-toggle" class="control-icon-btn" aria-label="Beralih layar penuh">
+        <svg class="svg-icon icon-fs-enter" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        <svg class="svg-icon icon-fs-exit" viewBox="0 0 24 24" style="display:none;"><path d="M4 14h6v6m10-10h-6V4m0 16v-6h6M10 4v6H4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="deck-viewport" tabindex="0">
+    <div id="three-container" class="three-container"></div>
+    <section id="slide-stage" class="slide-stage" aria-live="polite"></section>
+  </main>
+
+  <footer id="global-footer">
+    <div class="footer-left">
+      <button type="button" id="btn-prev" class="nav-control-btn" aria-label="Slide sebelumnya">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+    </div>
+    <div class="footer-center">
+      <button type="button" id="next-slide-preview" class="next-preview-btn">
+        <span class="preview-label">Berikutnya:</span>
+        <span id="next-title-text" class="preview-title">Memuat...</span>
+      </button>
+    </div>
+    <div class="footer-right">
+      <span id="slide-counter" class="counter-display">01 / 23</span>
+      <button type="button" id="btn-next" class="nav-control-btn" aria-label="Slide berikutnya">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+  </footer>
+
+  <div id="shutter-transition" class="shutter-transition" aria-hidden="true">
+    <div class="shutter-bar"></div>
+    <div class="shutter-bar"></div>
+    <div class="shutter-bar"></div>
+    <div class="shutter-bar"></div>
+    <div class="shutter-bar"></div>
+    <div class="shutter-bar"></div>
+  </div>
+
+  <aside id="presenter-panel" class="presenter-panel" aria-label="Naskah Presenter" aria-hidden="true">
+    <div class="presenter-header">
+      <span class="presenter-tag">Catatan Sesi Pemaparan</span>
+      <button type="button" id="btn-close-presenter" class="close-panel-btn" aria-label="Tutup panel">
+        <svg class="svg-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="presenter-content" class="presenter-body"></div>
+  </aside>
+
+  <div id="glossary-backdrop" class="glossary-backdrop" aria-hidden="true">
+    <div id="glossary-card" class="glossary-card" role="dialog" aria-modal="true">
+      <div class="glossary-header">
+        <h4 id="glossary-title" class="glossary-title">Istilah</h4>
+        <button type="button" id="btn-close-glossary" class="glossary-close" aria-label="Tutup kartu definisi">
+          <svg class="svg-icon" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <p id="glossary-def" class="glossary-def"></p>
+      <div class="glossary-case">
+        <span class="case-label">Contoh Penerapan:</span>
+        <p id="glossary-example" class="case-text"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="slides.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
